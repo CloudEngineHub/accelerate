@@ -618,6 +618,8 @@ def fsdp2_prepare_model(accelerator, model: torch.nn.Module) -> torch.nn.Module:
         # `fully_shard` doesn't accept `None` in case of `MixedPrecisionPolicy`
         "mp_policy": fsdp2_plugin.mixed_precision_policy or MixedPrecisionPolicy(),
     }
+    if getattr(accelerator, "_fsdp_device_mesh", None):
+        fsdp2_kwargs["mesh"] = accelerator._fsdp_device_mesh["dp_shard_cp"]
 
     model_has_params4bit = False
     for name, param in model.named_parameters():

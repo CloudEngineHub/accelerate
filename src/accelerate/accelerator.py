@@ -29,7 +29,6 @@ from functools import partial
 from types import MethodType
 from typing import Any, Callable, Union
 
-from accelerate.utils.fsdp_utils import fsdp2_prepare_auto_wrap_policy
 import torch
 import torch.utils.hooks as hooks
 from huggingface_hub import split_torch_state_dict_into_shards
@@ -1474,6 +1473,18 @@ class Accelerator:
 
         # Needs to be done first, to make sure AC + fully_shard will work as expected
         self.state.fsdp_plugin.set_auto_wrap_policy(model)
+
+        if os.environ.get("CP_ENABLED", False):
+            from torch.distributed.device_mesh import DeviceMesh
+            from torch.distributed.tensor.experimental import context_parallel
+
+            device_mesh = DeviceMesh(
+                device_type="cuda", mesh=[[0, 1, 2, 3, 4, 5, 6, 7]], mesh_dim_names=["dp_shard", "cp"]
+            )
+            device_mesh["dp_shard", "cp"]._flatten("dp_shard_cp")
+
+            self._fsdp_device_mesh = device_mesh
+            self._cp_train_context = functools.partial(context_parallel, mesh=device_mesh["cp"])
 
         # Apply AC if needed
         if self.state.fsdp_plugin.activation_checkpointing:
