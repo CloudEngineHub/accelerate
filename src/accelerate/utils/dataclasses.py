@@ -1545,6 +1545,9 @@ class FullyShardedDataParallelPlugin:
         min_num_params (`Optional[int]`, defaults to `None`):
             The minimum number of parameters a module must have to be wrapped. Only applicable when `auto_wrap_policy`
             is `size_based_wrap`.
+        context_parallel_size (`Optional[int]`, defaults to `None`):
+            The size of the context parallel group. Only applicable when `fsdp_version` is set to 2, else error will be
+            raised.
     """
 
     fsdp_version: int = field(
@@ -1688,6 +1691,12 @@ class FullyShardedDataParallelPlugin:
         default=None,
         metadata={
             "help": "The minimum number of parameters a module must have to be wrapped. Only applicable when `auto_wrap_policy` is `size_based_wrap`."
+        },
+    )
+    context_parallel_size: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": "The size of the context parallel group. Only applicable when `fsdp_version` is set to 2, else error will be raised."
         },
     )
 
@@ -1851,6 +1860,14 @@ class FullyShardedDataParallelPlugin:
                 "Setting environment variable to match `cpu_ram_efficient_loading`."
             )
             os.environ[env_var] = str(self.cpu_ram_efficient_loading)
+
+        if self.context_parallel_size is None:
+            self.context_parallel_size = int(os.environ.get(env_prefix + "CONTEXT_PARALLEL_SIZE", None))
+
+        if self.context_parallel_size is not None and self.fsdp_version != 2:
+            raise ValueError(
+                f"context_parallel_size set to {self.context_parallel_size}. This is not supported with FSDP1, please set to None or use `fsdp_version=2`"
+            )
 
         if isinstance(self.mixed_precision_policy, dict):
             self.set_mixed_precision(self.mixed_precision_policy)
