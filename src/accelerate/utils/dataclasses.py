@@ -1862,7 +1862,10 @@ class FullyShardedDataParallelPlugin:
             os.environ[env_var] = str(self.cpu_ram_efficient_loading)
 
         if self.context_parallel_size is None:
-            self.context_parallel_size = int(os.environ.get(env_prefix + "CONTEXT_PARALLEL_SIZE", None))
+            self.context_parallel_size = os.environ.get(env_prefix + "CONTEXT_PARALLEL_SIZE", None)
+
+        if self.context_parallel_size is not None:
+            self.context_parallel_size = int(self.context_parallel_size)
 
         if self.context_parallel_size is not None and self.fsdp_version != 2:
             raise ValueError(

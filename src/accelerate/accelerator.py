@@ -1587,7 +1587,7 @@ class Accelerator:
         self._models.append(model)
 
         # Prepare everything FSDP2 related for the model (except AC)
-        model = fsdp2_prepare_model(self, model, **_fully_shard_kwargs)
+        model = fsdp2_prepare_model(self, model, fully_shard_kwargs=_fully_shard_kwargs)
 
         # Remove the old model from the list
         if len(self._models) > 1 and (self._models[-2] is self._models[-1]):
