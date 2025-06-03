@@ -2,7 +2,7 @@
 
 This folder contains examples of using FSDP2 with Accelerate, utilizing extra methods to improve training speed, performance or accuracy.
 
-### FSDP2 + ao Float8Linear
+### FSDP2 + ao Float8Linear (`fsdp2_fp8.py`)
 
 In file `fsdp2_fp8.py` we use `Float8Linear` from `ao` to train a model partially in FP8 precision. We utilize `AORecipeKwargs` to pass the `Float8LinearConfig` to the accelerator, 
 which replaces the default `torch.nn.Linear` with `Float8Linear`. We also utilize `TorchDynamoPlugin` together with regional compilation to compile the model,
@@ -26,7 +26,6 @@ In our example, we use a 8B Llama3.1 model, which has a hidden dimension of 4096
 
 The figures above were generated on 8x H100 SXM GPUs, with 8192 sequence length and 1000 steps. If `--bf16` is specified, the model will be trained in bf16 precision, otherwise it will be trained in fp8 precision. To run the example, you can use the following command:
 
-
 ```bash
-accelerate launch --fsdp2_fp8.py --sequence_length 8192 --num_steps 1000 --log_with wandb [--bf16]
+accelerate launch fsdp2_fp8.py --sequence-length 8192 --num-steps 1000 --log-with wandb [--bf16]
 ```
